@@ -57,7 +57,7 @@ func setup() {
 
 	SRUrl = "http://localhost:" + srcSRPort.Port()
 
-	testClient = NewSchemaRegistryClient(SRUrl, "testUser", "testPass", "src")
+	testClient = NewSchemaRegistryClient(SRUrl, "testUser", "testPass", "", "src")
 
 	//Initial schema
 	setImportMode()
@@ -73,10 +73,10 @@ func tearDown() {
 }
 
 func TIsReachable(t *testing.T) {
-	falseTestClient := NewSchemaRegistryClient("http://localhost:8083", "testUser", "testPass", "src")
+	falseTestClient := NewSchemaRegistryClient("http://localhost:8083", "testUser", "testPass", "","src")
 
 	assert.True(t, testClient.IsReachable())
-	assert.False(t, falseTestClient.IsReachable())
+	assert.False(t, falseTestClient.IsReachable()) 
 }
 
 func TSetCompat(t *testing.T) {

@@ -102,8 +102,8 @@ func setup() {
 	dstSRPort, err := localSchemaRegistryDstContainer.MappedPort(ctx, "8082")
 	testingUtils.CheckFail(err, "Not Able to get DST SR Port")
 
-	testClientSrc = client.NewSchemaRegistryClient("http://localhost:"+srcSRPort.Port(), "testUser", "testPass", "src")
-	testClientDst = client.NewSchemaRegistryClient("http://localhost:"+dstSRPort.Port(), "testUser", "testPass", "dst")
+	testClientSrc = client.NewSchemaRegistryClient("http://localhost:"+srcSRPort.Port(), "testUser", "testPass", "", "src")
+	testClientDst = client.NewSchemaRegistryClient("http://localhost:"+dstSRPort.Port(), "testUser", "testPass","",  "dst")
 }
 
 func tearDown() {

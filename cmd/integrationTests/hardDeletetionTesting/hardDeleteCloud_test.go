@@ -5,15 +5,16 @@ package integration_deletion
 // Copyright 2020 Abraham Leal
 //
 
-
 import (
-	client "github.com/abraham-leal/ccloud-schema-exporter/cmd/internals"
-	"github.com/stretchr/testify/assert"
+	"fmt"
 	"log"
 	"os"
 	"reflect"
 	"testing"
 	"time"
+
+	client "github.com/abraham-leal/ccloud-schema-exporter/cmd/internals"
+	"github.com/stretchr/testify/assert"
 )
 
 var testClientSrc *client.SchemaRegistryClient
@@ -33,8 +34,9 @@ func setupHardDeletesTest() {
 	client.SyncHardDeletes = true
 	client.HttpCallTimeout = 60
 
-	testClientSrc = client.NewSchemaRegistryClient(os.Getenv("XX_SRC_CCLOUD_URL"), os.Getenv("XX_SRC_CCLOUD_KEY"), os.Getenv("XX_SRC_CCLOUD_SECRET"), "src")
-	testClientDst = client.NewSchemaRegistryClient(os.Getenv("XX_DST_CCLOUD_URL"), os.Getenv("XX_DST_CCLOUD_KEY"), os.Getenv("XX_DST_CCLOUD_SECRET"), "dst")
+	testClientSrc = client.NewSchemaRegistryClient(os.Getenv("XX_SRC_CCLOUD_URL"), os.Getenv("XX_SRC_CCLOUD_KEY"), os.Getenv("XX_SRC_CCLOUD_SECRET"), "", "src")
+	testClientDst = client.NewSchemaRegistryClient(os.Getenv("XX_DST_CCLOUD_URL"), os.Getenv("XX_DST_CCLOUD_KEY"), os.Getenv("XX_DST_CCLOUD_SECRET"), os.Getenv("XX_DST_CCLOUD_CONTEXT"), "dst")
+	fmt.Printf("XXXXXXXcontext: " + os.Getenv("XX_DST_CCLOUD_CONTEXT"))
 }
 
 func TestSyncModeHardDeletes(t *testing.T) {

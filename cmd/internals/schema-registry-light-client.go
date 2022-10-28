@@ -27,20 +27,20 @@ var statusError = "Received status code %d instead of 200 for %s, on %s"
 
 // Base construct of a Schema Registry Client.
 // The target parameter will decide what checks will be performed in the environment variables
-func NewSchemaRegistryClient(SR string, apiKey string, apiSecret string, target string) *SchemaRegistryClient {
+func NewSchemaRegistryClient(SR string, apiKey string, apiSecret string, context string, target string) *SchemaRegistryClient {
 	client := SchemaRegistryClient{}
 
 	// If the parameters are empty, go fetch from env
 	if SR == "" || apiKey == "" || apiSecret == "" {
 		if target == "dst" {
-			client = SchemaRegistryClient{SRUrl: DestGetSRUrl(), SRApiKey: DestGetAPIKey(), SRApiSecret: DestGetAPISecret()}
+			client = SchemaRegistryClient{SRUrl: DestGetSRUrl(), SRApiKey: DestGetAPIKey(), SRApiSecret: DestGetAPISecret(), SRContext: DestGetSRContext()}
 		}
 		if target == "src" {
 			client = SchemaRegistryClient{SRUrl: SrcGetSRUrl(), SRApiKey: SrcGetAPIKey(), SRApiSecret: SrcGetAPISecret()}
 		}
 	} else {
 		// Enables passing in the vars through flags
-		client = SchemaRegistryClient{SRUrl: SR, SRApiKey: apiKey, SRApiSecret: apiSecret}
+		client = SchemaRegistryClient{SRUrl: SR, SRApiKey: apiKey, SRApiSecret: apiSecret, SRContext: context}
 	}
 
 	httpClient = http.Client{
@@ -53,6 +53,7 @@ func NewSchemaRegistryClient(SR string, apiKey string, apiSecret string, target 
 // Returns whether a proper connection could be made to the Schema Registry by the client
 func (src *SchemaRegistryClient) IsReachable() bool {
 	endpoint := src.SRUrl
+
 	req := GetNewRequest("GET", endpoint, src.SRApiKey, src.SRApiSecret, nil, nil)
 
 	res, err := httpClient.Do(req)
@@ -70,11 +71,16 @@ func (src *SchemaRegistryClient) IsReachable() bool {
 
 // Returns all non-deleted (soft or hard deletions) subjects with their versions in the form of a map.
 func (src *SchemaRegistryClient) GetSubjectsWithVersions(chanY chan<- map[string][]int64, deleted bool) {
-	endpoint := ""
-	if deleted {
-		endpoint = fmt.Sprintf("%s/subjects?deleted=true", src.SRUrl)
+	var endpoint string
+	 //If we are using context only get the subjects related to it
+	if src.SRContext != "" {
+		endpoint = fmt.Sprintf("%s/contexts/%s/subjects", src.SRUrl,src.SRContext)
 	} else {
 		endpoint = fmt.Sprintf("%s/subjects", src.SRUrl)
+	}
+    // If we want to show soft deleted subjects add the delete parameter
+	if deleted {
+		endpoint = fmt.Sprintf("%s?deleted=true", endpoint)
 	}
 
 	req := GetNewRequest("GET", endpoint, src.SRApiKey, src.SRApiSecret, nil, nil)
@@ -133,9 +139,9 @@ func (src *SchemaRegistryClient) GetSubjectsWithVersions(chanY chan<- map[string
 func (src *SchemaRegistryClient) GetVersions(subject string, chanX chan<- SubjectWithVersions, wg *sync.WaitGroup, deleted bool) {
 	endpoint := ""
 	if deleted {
-		endpoint = fmt.Sprintf("%s/subjects/%s/versions?deleted=true", src.SRUrl, url.QueryEscape(subject))
+		endpoint = fmt.Sprintf("%s/subjects/%s/versions?deleted=true", src.SRUrl, subject)
 	} else {
-		endpoint = fmt.Sprintf("%s/subjects/%s/versions", src.SRUrl, url.QueryEscape(subject))
+		endpoint = fmt.Sprintf("%s/subjects/%s/versions", src.SRUrl, subject)
 	}
 
 	defer wg.Done()
@@ -226,7 +232,15 @@ func (src *SchemaRegistryClient) IsImportModeReady() bool {
 
 // Allows to set a global mode for the backing Schema Registry
 func (src *SchemaRegistryClient) SetMode(modeToSet Mode) bool {
-	endpoint := fmt.Sprintf("%s/mode", src.SRUrl)
+
+	var endpoint string 
+	if src.SRContext != "" {
+		endpoint = fmt.Sprintf("%s/contexts/.%s/mode", src.SRUrl, src.SRContext)
+		log.Printf(endpoint)
+	} else {
+		endpoint = fmt.Sprintf("%s/mode", src.SRUrl)
+		log.Printf(endpoint)
+	}
 
 	mode := ModeRecord{Mode: modeToSet.String()}
 	modeToSend, err := json.Marshal(mode)
@@ -293,8 +307,15 @@ func (src *SchemaRegistryClient) RegisterSchema(schema string, subject string, S
 
 // Registers a schema with the given SchemaID and SchemaVersion
 func (src *SchemaRegistryClient) RegisterSchemaBySubjectAndIDAndVersion(schema string, subject string, id int64, version int64, SType string, references []SchemaReference) []byte {
-	endpoint := fmt.Sprintf("%s/subjects/%s/versions", src.SRUrl, url.QueryEscape(subject))
 
+	var endpoint string
+
+	if src.SRContext != "" {
+		endpoint = fmt.Sprintf("%s/contexts/.%s/subjects/%s/versions", src.SRUrl, src.SRContext, url.QueryEscape(subject))
+	} else {
+		endpoint = fmt.Sprintf("%s/subjects/%s/versions", src.SRUrl, url.QueryEscape(subject))
+	}
+	
 	schemaRequest := SchemaToRegister{}
 	if id == 0 && version == 0 {
 		schemaRequest = SchemaToRegister{Schema: schema, SType: SType, References: references}

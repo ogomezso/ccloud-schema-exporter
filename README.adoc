@@ -26,6 +26,7 @@ The exporter expects the following variables to be set in the environment to mak
 - `DST_SR_URL` : The URL for the destination Schema Registry
 - `DST_API_KEY` : The API KEY to be used to make calls to the destination Schema Registry
 - `DST_API_SECRET` : The API SECRET to be used to make calls to the destination Schema Registry
+- `DST_SR_CONTEXT`: The Context to apply schemas to for the Destination Schema Registry Cluster
 
 It is also possible to define the credentials through command flags. If both are defined, the flags take precedence.
 
@@ -100,6 +101,8 @@ Usage of ./ccloud-schema-exporter:
     	API SECRET for the Destination Schema Registry Cluster
   -dest-sr-url string
     	Url to the Destination Schema Registry Cluster
+  -dest-sr-context string
+		Context to apply schemas to for the Destination Schema Registry Cluster
   -disallowList value
     	A comma delimited list of schema subjects to disallow. It also accepts paths to a file containing a list of subjects.
   -fromLocalCopy
@@ -160,6 +163,16 @@ If specifying a file, make sure it has an extension (such as `.txt`).
 A subject specified in `-disallowList` and `-allowList` will be disallowed by default.
 
 NOTE: Lists aren't respected with the utility `-deleteAllFromDestination`
+
+=== Using Context on destination cluster
+
+It is now possible to export schemas to a specific context on the destination cluster in all modes (`<-sync | -batchExport | -getLocalCopy | -fromLocalCopy>`).
+
+This got some implications:
+
+1. IMPORT Mode will be set up just for the context and not for the whole Schema Registry
+2. When `batchExport` is performed the context will be restored to READWRITE mode as usual but since contexts can be set up to IMPORT again now you can perform several imports to the same context
+3. `-deleteAllFromDestination` now just delete subjects located on the given schema. 
 
 === A note on syncing hard deletions
 

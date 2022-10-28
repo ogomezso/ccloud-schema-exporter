@@ -122,8 +122,9 @@ func checkSubjectIsAllowed(subject string) bool {
 }
 
 // Deletes all registered schemas from the destination SR
-func deleteAllFromDestination(sr string, key string, secret string) {
-	destClient := NewSchemaRegistryClient(sr, key, secret, "dst")
+func deleteAllFromDestination(sr string, key string, secret string, context string) {
+	log.Printf("delete context: %s", context)
+	destClient := NewSchemaRegistryClient(sr, key, secret, context, "dst")
 	if !destClient.IsReachable() {
 		log.Fatalln("Could not reach source registry. Possible bad credentials?")
 	}

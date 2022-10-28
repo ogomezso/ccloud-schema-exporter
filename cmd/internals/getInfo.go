@@ -75,3 +75,14 @@ func DestGetSRUrl() string {
 
 	panic(errors.New("DST_SR_URL environment variable has not been specified"))
 }
+
+// DestGetSRContext returns the Destination Context from environment variables
+// if a Context can not be found, it exits the process
+func DestGetSRContext() string {
+	context, present := os.LookupEnv("DST_SR_CONTEXT")
+	if present && context != "" {
+		return context
+	} else {
+		return "default"
+	}
+}

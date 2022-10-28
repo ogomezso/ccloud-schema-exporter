@@ -19,9 +19,11 @@ var httpClient http.Client
 var SrcSRUrl string
 var SrcSRKey string
 var SrcSRSecret string
+var SrcSRContest string
 var DestSRUrl string
 var DestSRKey string
 var DestSRSecret string
+var DestSRContext string
 var CustomDestinationName string
 var CustomSourceName string
 var NoPrompt bool

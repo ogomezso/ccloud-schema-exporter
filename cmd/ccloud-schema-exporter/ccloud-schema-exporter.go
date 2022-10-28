@@ -49,7 +49,7 @@ func main() {
 
 	if client.CustomSourceName != "" {
 
-		destClient := client.NewSchemaRegistryClient(client.DestSRUrl, client.DestSRKey, client.DestSRSecret, "dst")
+		destClient := client.NewSchemaRegistryClient(client.DestSRUrl, client.DestSRKey, client.DestSRSecret, client.DestSRContext, "dst")
 		if !client.NoPrompt {
 			preflightWriteChecks(destClient, false)
 		}
@@ -72,7 +72,7 @@ func main() {
 			log.Fatalln("Could not get execution path. Possibly a permissions issue.")
 		}
 
-		destClient := client.NewSchemaRegistryClient(client.DestSRUrl, client.DestSRKey, client.DestSRSecret, "dst")
+		destClient := client.NewSchemaRegistryClient(client.DestSRUrl, client.DestSRKey, client.DestSRSecret, client.DestSRContext, "dst")
 		if !client.NoPrompt {
 			preflightWriteChecks(destClient, false)
 		}
@@ -91,7 +91,7 @@ func main() {
 			log.Fatalln("Could not get execution path. Possibly a permissions issue.")
 		}
 
-		destClient := client.NewSchemaRegistryClient(client.DestSRUrl, client.DestSRKey, client.DestSRSecret, "dst")
+		destClient := client.NewSchemaRegistryClient(client.DestSRUrl, client.DestSRKey, client.DestSRSecret, client.DestSRContext, "dst")
 		if !client.NoPrompt {
 			preflightWriteChecks(destClient, true)
 		}
@@ -105,7 +105,7 @@ func main() {
 		os.Exit(0)
 	}
 
-	srcClient := client.NewSchemaRegistryClient(client.SrcSRUrl, client.SrcSRKey, client.SrcSRSecret, "src")
+	srcClient := client.NewSchemaRegistryClient(client.SrcSRUrl, client.SrcSRKey, client.SrcSRSecret, "",  "src")
 	if !srcClient.IsReachable() {
 		log.Fatalln("Could not reach source registry. Possible bad credentials?")
 	}
@@ -137,7 +137,7 @@ func main() {
 		os.Exit(0)
 	}
 
-	destClient := client.NewSchemaRegistryClient(client.DestSRUrl, client.DestSRKey, client.DestSRSecret, "dst")
+	destClient := client.NewSchemaRegistryClient(client.DestSRUrl, client.DestSRKey, client.DestSRSecret, client.DestSRContext, "dst")
 	if !client.NoPrompt {
 		preflightWriteChecks(destClient, false)
 	}
@@ -190,7 +190,7 @@ func preflightWriteChecks(destClient *client.SchemaRegistryClient, noImport bool
 
 	if !noImport {
 		destSubjects := client.GetCurrentSubjectState(destClient)
-		if len(destSubjects) != 0 && client.ThisRun != client.SYNC {
+		if len(destSubjects) != 0 && client.ThisRun != client.SYNC && client.SrcSRContest != "" {
 			log.Println("You have existing subjects registered in the destination registry, exporter cannot write schemas when " +
 				"previous schemas exist in batch mode.")
 			os.Exit(0)
